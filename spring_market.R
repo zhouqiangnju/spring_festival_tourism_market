@@ -1,4 +1,5 @@
-library("XML")
+setup<-function(){
+  library("XML")
 library(xml2)
 library("stringr")
 library("RCurl")
@@ -12,32 +13,46 @@ library(rlist)
 library(leaflet)
 library(RColorBrewer)
 library(ggthemes)
-setwd('F:/Administrator/Documents/GitHub/spring_festival_tourism_market')
+library('showtext')
+library(scales)
+}
+#set environment.
+# 1.load necessary packages
+# 2.set textshow environment
+# 3.pickup colors to use
+
+setup()
+
+showtext_auto()
+font_add('SimSun','simsun.ttc',"KaiTi_GB2312")
+setwd('~/GitHub/spring_festival_tourism_market')
+
+pal.income <- brewer.pal(9,name = 'Reds')
+pal.gr.i<-brewer.pal(9,name = 'Oranges')
+
 #don't need
 url<-'http://mp.weixin.qq.com/s?__biz=MzI4MjU2ODM5Mg==&mid=100001413&idx=1&sn=034863c69be1c0b050e46881bd4762b3&chksm=6b96b5225ce13c349ef59854488cd2518a2762d8036fe551c9f79644671ba054a6990e46534b&mpshare=1&scene=23&srcid=0222dIIYThF8wPtsDeD0NnCB#rd'
 content <- url %>% getURL(.encoding = 'utf8') %>% readHTMLTable(header = TRUE) %>% '[['(1) 
 content <- readHTMLTable(url,header = TRUE,colClasses = c('integer','character','numeric','Percent','numeric','Percent'),.encoding = 'utf8') %>% '[['(1) 
 content[is.na(content)]<-c(0)
 
-
-province.list<-read.csv('F:/Administrator/Documents/R/Map/BaiduGeoTable/çœadcode.csv',stringsAsFactors = FALSE)[,2] %>% 
-               substr(1,3) %>% str_replace('çœ|å¸‚|å£®|è‡ª|å›|ç»´','')
+display.brewer.all()
 
 #prepare data
 spri.data <- read.csv('spring_data.csv',stringsAsFactors = FALSE)[,-1]
 
-
 #input mapfile
-china.map<-st_read('F:/Administrator/Documents/R/Map/china.geojson',stringsAsFactors = FALSE)
+china.map<-st_read('china.geojson',stringsAsFactors = FALSE)
 
 capital<-st_read('çœä¼š.shp')
 #merge files,sdm stands for spring-data-map
 sdm <- merge(spri.data,china.map,by.x = 'province',by.y = 'name',all = TRUE) %>% 
        st_sf(stringsAsFactors = FALSE,crs = 4326,sf_column_name = 'geometry')
-sdm$income <-as.numeric(sdm$income)
+
 Encoding(sdm$province)<-'UTF8'
+
 # visiualization
-pal <- 
+
 
   theme_clean <- function(base_size=12){
     
@@ -53,20 +68,34 @@ pal <-
       panel.grid = element_blank()
     )
     
-}
+  }
+  
+  model<-ggplot(sdm)+ theme(text = element_text(family='SimSun'))
+  aftermath<-theme_economist()+theme_clean()+theme(legend.position="right")
+  
 total.income <- ggplot()+
-                geom_sf(data = sdm,aes(fill = income ),show.legend = T)
-             
-         
-               
-                
+                geom_sf(data = sdm,aes(fill = as.numeric(sdm$income)))+
+                scale_fill_gradient(name='ÂÃÓÎÊÕÈë(ÒÚÔª)',low = pal[1] , high = pal[8] ,
+                                    guide = 'colorbar',na.value = 'grey50',breaks=pretty_breaks(n=5))+
+                ggtitle('2018Äê´º½ÚÈ«¹úÂÃÓÎÊĞ³¡')+
+                theme(text = element_text(family='SimSun',size = 15,hjust = 0.5))
 
-                geom_text(data=sdm,aes(label = province),size=3)
-total.income+theme_wsj() + scale_colour_wsj("colors6", "")+theme_clean()
-plot(capital)
-str(is.na(province.map$NAME))
-plot(province.map[is.na(province.map$NAME),])
-write.csv(spri.data,'spring_data.csv')
-  as.character(content[1,])
-names(content) <- as.character(content[1,])
-names(content)
+gr.i <-model+geom_sf(aes(fill=as.numeric(sdm$gr.i)))+
+      scale_fill_gradient(name='ÊÕÈëÔö³¤ÂÊ',low = pal.gr.i[2] , high = pal.gr.i[8] ,
+                      guide = 'colorbar',na.value = 'grey50',breaks=pretty_breaks(n=5))
+
+visitor<-model+geom_sf(aes(fill=as.numeric(sdm$vistor)))+
+         scale_fill_gradient(name='½Ó´ıÓÎ¿Í',low = pal.gr.i[2] , high = pal.gr.i[8] ,
+                      guide = 'colorbar',na.value = 'grey50',breaks=pretty_breaks(n=5))
+      
+gr.v<-model+geom_sf(aes(fill=as.numeric(sdm$gr.v)))+
+      scale_fill_gradient(name='ÓÎ¿ÍÔö³¤ÂÊ',low = pal.gr.i[2] , high = pal.gr.i[8] ,
+                      guide = 'colorbar',na.value = 'grey50',breaks=pretty_breaks(n=5))
+          
+total.income<-total.income+theme_economist()+theme_clean()+theme(legend.position="right")
+
+gr.i.map<-gr.i+aftermath
+visitor.map<- visitor+aftermath
+gr.v.map<-gr.v+aftermath
+gr.v.map
+visitor.map
