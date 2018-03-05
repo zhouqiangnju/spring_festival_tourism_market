@@ -28,7 +28,7 @@ library(Cairo)
 setup()
 
 
-showtext_auto()
+
 font_add('SimSun','simsun.ttc')
 font_add('msyh',regular = 'msyh.ttc',
                 bold = 'msyhbd.ttc')
@@ -72,33 +72,37 @@ sdm$gr.v<-as.numeric(sdm$gr.v)
                  
                  panel.background = element_blank(),
                  
-                 panel.grid = element_blank())
+                 panel.grid = element_blank())+
+                 
+                 theme_economist()
  
 total.income <-ggplot(sdm)+
                geom_sf(aes(fill = income))+
-               scale_fill_gradient(name='�������룺��Ԫ',low = pal.income[1] , high = pal.income[9] ,
+               scale_fill_gradient(name='单位：亿元',low = pal.income[1] , high = pal.income[9] ,
                                     guide = 'colorbar',na.value = 'grey50',breaks=pretty_breaks(n=5))+
-               ggtitle('2018���������г�')+
+               ggtitle('2018春节旅游市场')+
                theme(text = element_text(family = 'msyh'))
-p<-total.income
-               
+cairo_pdf('spring2.pdf')
+showtext_auto()
+total.income+frame_1
+dev.off()           
 gr.i <-ggplot(sdm)+
        geom_sf(aes(fill=gr.i))+
        scale_fill_gradient(name='%',low = pal.income[1] , high = pal.income[9] ,
                       guide = 'colorbar',na.value = 'grey50',breaks=pretty_breaks(n=5))+
-       ggtitle('2018年春节旅游市�?',subtitle='旅游收入增长�?')
+       ggtitle('2018年春节旅游市???',subtitle='旅游收入增长???')
 
 visitor<-ggplot(sdm)+
          geom_sf(aes(fill=as.numeric(sdm$vistor)))+
-         scale_fill_gradient(name='万人�?',low = pal.visitor[1] , high = pal.visitor[9] ,
+         scale_fill_gradient(name='万人???',low = pal.visitor[1] , high = pal.visitor[9] ,
                       guide = 'colorbar',na.value = 'grey50',breaks=pretty_breaks(n=5))+
-         ggtitle('2018年春节旅游市�?',subtitle='旅游人次')
+         ggtitle('2018年春节旅游市???',subtitle='旅游人次')
       
 gr.v<-ggplot(sdm)+
       geom_sf(aes(fill=as.numeric(sdm$gr.v)))+
       scale_fill_gradient(name='%',low = pal.visitor[1] , high = pal.visitor[9] ,
                       guide = 'colorbar',na.value = 'grey50',breaks=pretty_breaks(n=5))+
-      ggtitle('2018年春节旅游市�?',subtitle='旅游人次增长�?')
+      ggtitle('2018年春节旅游市???',subtitle='旅游人次增长???')
           
 
 p1<-total.income+frame_1
